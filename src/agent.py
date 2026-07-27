@@ -19,7 +19,7 @@ from src.metrics import detectar_patrones as _detectar_patrones
 
 load_dotenv()
 
-MODELO_POR_DEFECTO = "gemini-flash-latest"
+MODELO_POR_DEFECTO = "gemini-flash-lite-latest"
 
 SYSTEM_PROMPT = """Eres el asistente de TradeMetrics AI, un coach de trading \
 que responde preguntas sobre el journal de operaciones del usuario y advierte \
