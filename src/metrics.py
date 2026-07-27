@@ -52,6 +52,42 @@ def filtrar_periodo(df: pd.DataFrame, inicio: str, fin: str) -> pd.DataFrame:
     return df[(df["fecha"] >= inicio) & (df["fecha"] <= fin)]
 
 
+def detectar_patrones(df: pd.DataFrame) -> dict:
+    """Detecta patrones de comportamiento: racha actual, mindset con peor pnl
+    y activos más y menos rentables."""
+    df_ordenado = df.sort_values("fecha")
+    resultados = (df_ordenado["pnl"] > 0).tolist()
+
+    racha_tipo = None
+    racha_longitud = 0
+    if resultados:
+        racha_tipo = "ganadora" if resultados[-1] else "perdedora"
+        for gano in reversed(resultados):
+            if gano == resultados[-1]:
+                racha_longitud += 1
+            else:
+                break
+
+    por_mindset = desempeno_por_mindset(df)
+    mindset_peor_pnl = (
+        por_mindset.loc[por_mindset["pnl_total"].idxmin(), "estado_emocional"]
+        if not por_mindset.empty
+        else None
+    )
+
+    pnl_por_activo = df.groupby("activo")["pnl"].sum()
+    activo_mas_rentable = pnl_por_activo.idxmax() if not pnl_por_activo.empty else None
+    activo_menos_rentable = pnl_por_activo.idxmin() if not pnl_por_activo.empty else None
+
+    return {
+        "racha_tipo": racha_tipo,
+        "racha_longitud": racha_longitud,
+        "mindset_peor_pnl": mindset_peor_pnl,
+        "activo_mas_rentable": activo_mas_rentable,
+        "activo_menos_rentable": activo_menos_rentable,
+    }
+
+
 def resumen(df: pd.DataFrame) -> dict:
     """Los 4 KPIs principales en una sola llamada."""
     return {

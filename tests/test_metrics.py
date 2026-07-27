@@ -5,6 +5,7 @@ import pytest
 
 from src.metrics import (
     desempeno_por_mindset,
+    detectar_patrones,
     filtrar_periodo,
     pnl_total,
     profit_factor,
@@ -103,6 +104,24 @@ def test_filtrar_periodo(df_mixto):
     filtrado = filtrar_periodo(df_mixto, "2025-10-01", "2025-10-31")
     assert len(filtrado) == 2
     assert set(filtrado["activo"]) == {"NVDA", "MSFT"}
+
+
+def test_detectar_patrones(df_mixto):
+    patrones = detectar_patrones(df_mixto)
+    assert patrones["racha_tipo"] == "perdedora"
+    assert patrones["racha_longitud"] == 2
+    assert patrones["mindset_peor_pnl"] == "FOMO"
+    assert patrones["activo_mas_rentable"] == "AAPL"
+    assert patrones["activo_menos_rentable"] == "NVDA"
+
+
+def test_detectar_patrones_df_vacio(df_vacio):
+    patrones = detectar_patrones(df_vacio)
+    assert patrones["racha_tipo"] is None
+    assert patrones["racha_longitud"] == 0
+    assert patrones["mindset_peor_pnl"] is None
+    assert patrones["activo_mas_rentable"] is None
+    assert patrones["activo_menos_rentable"] is None
 
 
 def test_resumen(df_mixto):

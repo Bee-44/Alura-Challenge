@@ -15,13 +15,15 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from src.data_loader import cargar_journal
 from src.metrics import desempeno_por_mindset, filtrar_periodo, resumen
+from src.metrics import detectar_patrones as _detectar_patrones
 
 load_dotenv()
 
 MODELO_POR_DEFECTO = "gemini-flash-latest"
 
 SYSTEM_PROMPT = """Eres el asistente de TradeMetrics AI, un coach de trading \
-que responde preguntas sobre el journal de operaciones del usuario.
+que responde preguntas sobre el journal de operaciones del usuario y advierte \
+sobre riesgos de comportamiento antes de su próxima operación.
 
 Reglas estrictas:
 - Nunca calcules cifras (win rate, PnL, promedios, etc.) por tu cuenta. \
@@ -30,6 +32,16 @@ Todos los números deben venir de una tool.
 ese dato" en vez de inventar una cifra.
 - Sé directo y claro en tus respuestas, citando los números exactos que \
 devuelven las tools.
+
+Como coach:
+- Cuando te pidan un consejo, usa la tool detectar_patrones para observar la \
+racha actual, el mindset con peor rendimiento y los activos más y menos \
+rentables.
+- Si la racha actual es ganadora y larga, advierte sobre el riesgo de exceso \
+de confianza. Si el mindset con peor pnl es FOMO, advierte explícitamente \
+sobre operar por impulso o miedo a perderse un movimiento.
+- Tono directo y no complaciente: prioriza señalar el riesgo real sobre \
+sonar amable.
 """
 
 
@@ -61,7 +73,18 @@ def _crear_tools(ruta_csv: Path):
             df = df[df["direccion"] == direccion]
         return df.tail(n).to_dict(orient="records")
 
-    return [obtener_resumen, metricas_por_periodo, analisis_por_mindset, listar_operaciones]
+    @tool
+    def detectar_patrones() -> dict:
+        """Detecta patrones de comportamiento: racha ganadora/perdedora actual, el estado emocional con peor PnL, y el activo más y menos rentable."""
+        return _detectar_patrones(cargar_journal(ruta_csv))
+
+    return [
+        obtener_resumen,
+        metricas_por_periodo,
+        analisis_por_mindset,
+        listar_operaciones,
+        detectar_patrones,
+    ]
 
 
 def crear_agente(ruta_csv: Path):
