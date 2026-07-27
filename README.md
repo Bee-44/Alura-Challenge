@@ -95,4 +95,8 @@ Abre `http://localhost:8501` en el navegador.
 
 ## Deploy
 
-El deploy se realiza en una instancia Compute de Oracle Cloud (OCI).
+Desplegado en una instancia Compute de Oracle Cloud (OCI, Oracle Linux 9, shape `VM.Standard.A1.Flex` *Always Free*), corriendo como servicio `systemd` persistente.
+
+**URL pública:** http://147.224.137.231:8501
+
+Ver capturas de la aplicación corriendo en producción en `docs/screenshots/05_deploy_oci.png` y `docs/screenshots/06_deploy_oci_chat.png`.
